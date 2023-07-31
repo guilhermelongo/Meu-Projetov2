@@ -1,6 +1,8 @@
-﻿namespace Meu_Projeto.Domain;
+﻿using Flunt.Notifications;
 
-public abstract class Entity
+namespace Meu_Projeto.Domain;
+
+public abstract class Entity : Notifiable<Notification>
 {
     public Entity()
     {
@@ -10,7 +12,7 @@ public abstract class Entity
     public string Name { get; set; }
     public string CreatedBy { get; set; }
     public DateTime CreatedOn { get; set; }
-    public string EditeddBy { get; set; }
+    public string EditedBy { get; set; }
 
     public DateTime EditedOn { get; set; }
 }
