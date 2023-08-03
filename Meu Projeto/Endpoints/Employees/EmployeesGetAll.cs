@@ -2,6 +2,7 @@
 using Dapper;
 using Meu_Projeto.Endpoints.Categories;
 using Meu_Projeto.Infra.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Data.SqlClient;
@@ -14,8 +15,8 @@ public class EmployeesGetAll
     public static string Template => "/employees";
     public static string[] Methods => new string[] { HttpMethod.Get.ToString() };
     public static Delegate Handle => Action;
-
-    public static IResult Action(int? page, int? rows, QueryAllUsersWithClaimName query)
+    [Authorize(Policy = "Employee005Policy")]
+    public static async Task<IResult> Action(int? page, int? rows, QueryAllUsersWithClaimName query)
     {
 
 
@@ -31,11 +32,7 @@ public class EmployeesGetAll
         // }
         //return Results.Ok(employees);
         #endregion
-        if (page.HasValue && rows <= 10)
-            return Results.Ok(query.Execute(page.Value, rows.Value));
-
-        else
-            return Results.BadRequest("Parametros Inconsistentes");
-    }
-
+        var result = await query.Execute(page.Value, rows.Value);
+        return Results.Ok(result);
+     }
 }

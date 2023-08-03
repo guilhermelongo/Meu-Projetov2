@@ -1,5 +1,6 @@
 ﻿
 using Meu_Projeto.Endpoints.Categories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 
@@ -10,13 +11,13 @@ public class EmployeesPost
     public static string Template => "/employees";
     public static string[] Methods => new string[] { HttpMethod.Post.ToString() };
     public static Delegate Handle => Action;
-
-    public static IResult Action(EmployeesRequest employeesRequest, UserManager<IdentityUser> userManager )
+    [Authorize(Policy = "EmployeePolicy")]
+    public static async Task<IResult> Action(EmployeesRequest employeesRequest,HttpContext http ,UserManager<IdentityUser> userManager )
     {
+        var userId = http.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value;
+        var newUser = new IdentityUser {UserName = employeesRequest.Email, Email = employeesRequest.Email };
 
-        var user = new IdentityUser {UserName = employeesRequest.Email, Email = employeesRequest.Email };
-
-        var result = userManager.CreateAsync(user, employeesRequest.password).Result;
+        var result = await userManager.CreateAsync(newUser, employeesRequest.password);
 
         if (!result.Succeeded)
         {
@@ -25,15 +26,16 @@ public class EmployeesPost
         var userClaims = new List<Claim>
         {
             new Claim("EmployeeCode", employeesRequest.EmployeesCode),
-            new Claim("Name", employeesRequest.Name)
+            new Claim("Name", employeesRequest.Name),
+            new Claim ("CreateBy", employeesRequest.Name),
         };
-        var claimResult = userManager.AddClaimsAsync(user, userClaims).Result;
+        var claimResult = await userManager.AddClaimsAsync(newUser, userClaims);
         if (!claimResult.Succeeded)
         {
             return Results.BadRequest(claimResult.Errors.First());
         }
         
-        return Results.Created($"/employees/{user.Id}", user.Id);
+        return Results.Created($"/employees/{newUser.Id}", newUser.Id);
 
 
     }

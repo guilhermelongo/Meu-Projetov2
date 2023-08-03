@@ -19,4 +19,5 @@ namespace Meu_Projeto.Endpoints.Categories
 
         }
     }
+
 }
